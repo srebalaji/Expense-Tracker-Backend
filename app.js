@@ -25,6 +25,16 @@ app.use(function(req,res,next){
   next();
 });
 
+app.use('/', tracker);
+
+app.use('/v1/categories', tracker);
+app.use('/v1/categories/:id', tracker);
+
+app.use('/v1/expenses', tracker);
+app.use('v1/expenses/:id', tracker);
+
+app.use('v1/report/', tracker);
+
 app.use('/api/v1/users', users);
 
 module.exports = app;

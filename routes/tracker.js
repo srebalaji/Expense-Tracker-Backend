@@ -53,3 +53,18 @@ router.put('/v1/categories/:id', function(req, res, next) {
 		res.json(document);
 	});
 });
+
+// delete a category
+router.delete('/v1/categories/:id', function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let collection = db.get('categories');
+
+	var newObjectId = new ObjectID.createFromHexString(req.params.id);
+	collection.findOneAndDelete({'_id': newObjectId}, function(error, document) {
+		if (error) {
+			res.json({message: "error"});
+		}
+		res.json(document);
+	});
+});

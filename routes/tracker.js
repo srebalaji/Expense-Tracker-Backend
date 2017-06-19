@@ -215,3 +215,26 @@ router.get('/v1/expenses/:id', function(req, res, next) {
 	    });    
 
 });
+
+// update an expense
+router.put('/v1/expenses/:id', update_function, function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let expenses = db.get('expenses');
+	let expense_categories = db.get('expense_categories');
+	let expense = req.document;
+	let categories = req.body.categories;
+	let result_document = null;
+	if (categories == null || categories.length == 0)
+		{res.json(expense);}
+	expense_categories.find({expense_id: new ObjectID(expense._id)}, {category_id: 1, _id: 0}, function(error, document) {
+		if (error) {
+			console.log(error);
+			res.json({data: "error"});
+		}
+		result_document = document;
+		update_categories(req, res, next, result_document, expense);
+		
+	});
+	
+});

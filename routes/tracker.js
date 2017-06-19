@@ -95,3 +95,64 @@ router.post('/v1/expenses', create_function, function(req, res, next) {
 		res.json(expense);
 	});
 });
+
+/* list expenses. */
+router.get('/v1/expenses', function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let expenses = db.get('expenses');
+	let categories = db.get('categories');
+	let expense_categories = db.get('expense_categories');
+
+	expenses.aggregate([{
+      $lookup: {
+          from: "expense_categories",
+          localField: "_id",
+          foreignField: "expense_id",
+          as: "expense_category"
+      }
+  }, {
+      $unwind: {
+          path: "$expense_category",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+      $lookup: {
+          from: "categories",
+          localField: "expense_category.category_id",
+          foreignField: "_id",
+          as: "category"
+      }
+  }, {
+      $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+   $group: {
+      _id: '$_id',
+      title: {'$first': '$title'},
+      amount: {'$first': '$amount'},
+      created_at: {'$first': '$created_at'},
+      categories: {'$addToSet': '$category'}
+   }
+  }, {
+   $project: {
+      title: 1,
+      amount: 1,
+      categories: 1,
+      created_at: 1
+      }
+  },{
+  	$sort: {
+  		_id: 1
+  	}
+  } 
+    ], function(error, document) {
+    	if (error) {
+				res.json({message: "error"});
+			}
+			res.json(document);
+	    });    
+
+});

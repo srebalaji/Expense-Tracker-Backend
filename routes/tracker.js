@@ -26,3 +26,19 @@ router.post('/v1/categories', function(req, res, next) {
 	});
 	
 });
+
+// show a category
+router.get('/v1/categories/:id', function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let collection = db.get('categories');
+
+	var newObjectId = new ObjectID.createFromHexString(req.params.id);
+	collection.find({'_id': newObjectId}, function(error, document) {
+		if (error) {
+			res.json({message: "error"});
+		}
+		res.json(document);
+	});
+	
+});

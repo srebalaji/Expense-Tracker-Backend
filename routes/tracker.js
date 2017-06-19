@@ -305,3 +305,85 @@ router.get('/v1/report/', function(req, res, next){
 
 
 });
+
+// hepler function
+function create_function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let collection = db.get('expenses');
+	collection.insert({title: req.body.title, amount: req.body.amount, notes: req.body.notes, created_at: new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())}, function(error, document) {
+		if (error) {
+			next(new Error("Could do operation"+ error));
+		}
+		req.document = document;
+		next();
+	});
+}
+
+function update_function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let collection = db.get('expenses');
+
+	collection.findOneAndUpdate({'_id': new ObjectID(req.params.id)}, {title: req.body.title, amount: req.body.amount, notes: req.body.notes}, function(error, document) {
+		if (error) {
+			next(new Error("Could do operation"+ error));
+		}
+		req.document = document;
+		next();
+	});
+}
+
+function update_categories(req, res, next, document, expense) {
+	let db = req.db;
+	let expense_categories = db.get('expense_categories');
+	let categories = req.body.categories || [];
+	let ObjectID = req.ObjectID;
+	//console.log("from update categories"+categories[0].title);
+	// if (categories == null || categories.length == 0) {
+	// 	return;
+	// }
+	let categories_to_be_updated = [];
+	for(let i=0; i<categories.length; i++) {
+		categories_to_be_updated.push(categories[i].id);
+	}
+	let saved_categories = [];
+		document.forEach(function (category) {
+			saved_categories.push(category.category_id);
+		});
+		let categories_to_remove = []
+		categories_to_remove = saved_categories.diff(categories_to_be_updated);
+		
+		for(let i=0; i<categories_to_remove.length; i++) {
+			categories_to_remove[i] = new ObjectID(categories_to_remove[i]);
+		}
+
+		expense_categories.remove({'category_id': {'$in': categories_to_remove}}, function(error, document) {
+		if (error) {
+			next(new Error("Could do operation"+ error));
+		}
+
+		let categories_to_add = categories_to_be_updated.diff(saved_categories);
+		categories_to_be_added = [];
+		for(let i=0;i<categories_to_add.length; i++) {
+			let category = {};
+			category.expense_id = new ObjectID(expense._id);
+			category.category_id = new ObjectID(categories_to_add[i]);
+			categories_to_be_added.push(category);
+		}
+
+		expense_categories.insert(categories_to_be_added, function(error, document) {
+			if (error) {
+				res.json({data: "error"});
+			}
+			res.json(document);
+		});
+	});
+
+}
+
+Array.prototype.diff = function(a) {
+	return this.filter(function(i) {return a.indexOf(i) < 0;});
+};
+
+module.exports = router;

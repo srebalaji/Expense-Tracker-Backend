@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var mongodb = require('mongodb');
 var ObjectID = require('mongodb').ObjectID;
 var monk = require('monk');
-var db = monk('localhost:27017/sample_tracker_testing');
+var db = monk('mongodb://srebalaji:blackrider86$@ds133192.mlab.com:33192/simple-tracker-app');
 var tracker = require('./routes/tracker');
 
 var app = express();

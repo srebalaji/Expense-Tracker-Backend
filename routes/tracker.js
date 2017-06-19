@@ -13,3 +13,16 @@ router.get('/v1/categories', function(req, res, next) {
 	});
 	
 });
+
+// create category
+router.post('/v1/categories', function(req, res, next) {
+	let db = req.db;
+	let collection = db.get('categories');
+	collection.insert(req.body, function(error, document) {
+		if (error) {
+			res.json({message: "error"});
+		}
+		res.json(document);
+	});
+	
+});

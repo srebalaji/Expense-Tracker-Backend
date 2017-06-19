@@ -238,3 +238,70 @@ router.put('/v1/expenses/:id', update_function, function(req, res, next) {
 	});
 	
 });
+
+// daily stats
+router.get('/v1/report/', function(req, res, next){
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let expenses = db.get('expenses');
+	let categories = db.get('categories');
+	let expense_categories = db.get('expense_categories');
+
+	categories.aggregate([{
+      $lookup: {
+          from: "expense_categories",
+          localField: "_id",
+          foreignField: "category_id",
+          as: "expense_category"
+      }
+  }, {
+      $unwind: {
+          path: "$expense_category",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+      $lookup: {
+          from: "expenses",
+          localField: "expense_category.expense_id",
+          foreignField: "_id",
+          as: "expense"
+      }
+  }, {
+    $match: {
+      "expense.created_at": new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate())
+    }
+  },{
+      $unwind: {
+          path: "$expense",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+   $group: {
+      _id: '$_id',
+      title: {'$first': '$title'},
+      expenses: {'$addToSet': '$expense'}
+   }
+  }, {
+   $project: {
+      title: 1,
+      amount: 1,
+      expenses: 1,
+      created_at: 1
+      }
+  }
+
+    ], function(error, document){
+    	if (error) {
+				res.json({message: "error"});
+			}
+			let labels = [];
+			let values = [];
+			for(let i=0; i<document.length; i++) {
+				labels.push(document[i].title);
+				values.push(document[i].expenses.length);
+			}
+			res.json({"labels": labels, "values": values});
+    });
+
+
+});

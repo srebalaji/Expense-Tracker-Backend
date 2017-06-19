@@ -68,3 +68,30 @@ router.delete('/v1/categories/:id', function(req, res, next) {
 		res.json(document);
 	});
 });
+
+/* create an expense. */
+router.post('/v1/expenses', create_function, function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let collection = db.get('expense_categories');
+	let expense = req.document;
+	let categories = req.body.categories;
+	let expense_categories = [];
+
+	if (categories == null || categories.length == 0) {
+		res.json(expense);
+	}
+	for(let i=0; i<categories.length; i++) {
+		let add_categories = {};
+		add_categories.expense_id = new ObjectID(expense._id);
+		add_categories.category_id = new ObjectID(categories[i].id);
+		expense_categories.push(add_categories);
+	}
+
+	collection.insert(expense_categories, function(error, document) {
+		if (error) {
+			res.json({message: error});
+		}
+		res.json(expense);
+	});
+});

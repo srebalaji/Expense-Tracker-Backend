@@ -35,6 +35,8 @@ app.use('v1/expenses/:id', tracker);
 
 app.use('v1/report/', tracker);
 
-app.use('/api/v1/users', users);
+app.use(function(req, res, next) {
+  res.json({status: "404 not found"});
+});
 
 module.exports = app;

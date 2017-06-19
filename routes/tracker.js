@@ -156,3 +156,62 @@ router.get('/v1/expenses', function(req, res, next) {
 	    });    
 
 });
+
+// show an expense
+router.get('/v1/expenses/:id', function(req, res, next) {
+	let db = req.db;
+	let ObjectID = req.ObjectID;
+	let expenses = db.get('expenses');
+	let categories = db.get('categories');
+	let expense_categories = db.get('expense_categories');
+
+	expenses.aggregate([{
+      $lookup: {
+          from: "expense_categories",
+          localField: "_id",
+          foreignField: "expense_id",
+          as: "expense_category"
+      }
+  }, {
+      $unwind: {
+          path: "$expense_category",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+      $lookup: {
+          from: "categories",
+          localField: "expense_category.category_id",
+          foreignField: "_id",
+          as: "category"
+      }
+  }, {
+      $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true
+      }
+  }, {
+   $group: {
+      _id: '$_id',
+      title: {'$first': '$title'},
+      amount: {'$first': '$amount'},
+      categories: {'$addToSet': '$category'}
+   }
+  }, {
+  	$match: {
+  		_id: new ObjectID(req.params.id)
+  	}
+  },{
+   $project: {
+      title: 1,
+      amount: 1,
+      categories: 1
+      }
+  }
+    ], function(error, document) {
+    	if (error) {
+				res.json({message: "error"});
+			}
+			res.json(document);
+	    });    
+
+});

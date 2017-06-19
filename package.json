@@ -1,15 +1,13 @@
 {
   "name": "expense_tracker_backend",
-  "version": "1.0.0",
-  "description": "simple expense tracker developed in nodejs and in express",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "keywords": [
-    "nodejs",
-    "express"
-  ],
-  "author": "Srebalaji Thirumalai",
-  "license": "ISC"
+  "dependencies": {
+    "body-parser": "~1.13.2",
+    "cookie-parser": "~1.3.5",
+    "express": "~4.13.1"
+  }
 }
